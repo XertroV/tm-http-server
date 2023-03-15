@@ -143,7 +143,7 @@ class HttpServer {
         }
         reqLine = reqLine.Trim();
         auto reqParts = reqLine.Split(" ", 3);
-        log_info("RunRequest got first line: " + reqLine + " (parts: " + reqParts.Length + ")");
+        log_trace("RunRequest got first line: " + reqLine + " (parts: " + reqParts.Length + ")");
         auto headers = ParseHeaders(client);
         log_trace("Got " + headers.GetSize() + " headers.");
         // auto headerKeys = headers.GetKeys();
@@ -173,12 +173,10 @@ class HttpServer {
         string respHdrsStr = FormatHeaders(resp.headers);
         string fullResponse = httpVersion + " " + resp.status + " " + resp.StatusMsgText() + "\r\n" + respHdrsStr;
         fullResponse += "\r\n\r\n" + resp.body;
-        log_trace("Response: " + fullResponse);
+        log_debug("Response: " + fullResponse);
+        // need to use WriteRaw b/c otherwise strings are length prefixed
         client.WriteRaw(fullResponse);
-        // client.Write(httpVersion);
-        // client.Write(" ");
-        // client.Write(tostring(resp.status));
-        // client.Write(" blah\r\n");
+        log_info("["+Time::Stamp + " | " + client.GetRemoteIP()+"] " + reqType + " " + reqRoute + " " + resp.status);
         log_trace("Completed request.");
     }
 
@@ -187,7 +185,6 @@ class HttpServer {
         string nextLine;
         while (true) {
             while (client.Available() == 0) yield();
-            print("avail: " + client.Available());
             client.ReadLine(nextLine);
             nextLine = nextLine.Trim();
             if (nextLine.Length > 0) {
