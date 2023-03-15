@@ -40,16 +40,31 @@ string GetFolderPath(const string &in path) {
     return string::Join(parts, "/");
 }
 
+HttpServer@ server = null;
+
 void Main() {
     sleep(100);
-    auto server = HttpServer('0.0.0.0');
+    @server = HttpServer();
     @server.RequestHandler = HandleGhostUpload;
     server.StartServer();
-    sleep(200);
-    auto r = Net::HttpGet("http://localhost:29805/ghosts");
-    while (!r.Finished()) yield();
-    print("request status: " + r.ResponseCode());
-    print("request got: " + r.String());
-    print("request error: " + r.Error());
-    print(FormatHeaders(r.ResponseHeaders()));
+    // sleep(200);
+    // auto r = Net::HttpGet("http://localhost:29805/ghosts");
+    // while (!r.Finished()) yield();
+    // print("request status: " + r.ResponseCode());
+    // print("request got: " + r.String());
+    // print("request error: " + r.Error());
+    // print(FormatHeaders(r.ResponseHeaders()));
+}
+
+/** Called when the plugin is unloaded and completely removed from memory.
+*/
+void OnDestroyed() { UnloadPlugin(); }
+/** Called when the plugin is disabled from the settings, the menu or programatically via the [`Meta` API](https://openplanet.dev/docs/api/Meta).
+*/
+void OnDisabled() { UnloadPlugin(); }
+void UnloadPlugin() {
+    if (server !is null) {
+        server.Shutdown();
+        @server = null;
+    }
 }
